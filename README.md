@@ -12,6 +12,7 @@ use various regularization techniques to minimize energy in neural networks
 **path energy:**
 
 - let A_0 represent the initial weight matrix, and A_1 represent the trained network
-- then \gamma: [0,1] --> R^N is a path in weight space
+- let A_t be the network at normalized time t during training
+- then \gamma: [0,1] --> R^N, \gamma(t) = A_t is a path in weight space
 - the energy of a path is defined as (1/2)*\int_[0,1] ||\gamma'(t)||^2 dt
 - attempt to minimize this energy by using a local regularier
