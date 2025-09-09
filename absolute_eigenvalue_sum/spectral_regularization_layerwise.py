@@ -1,3 +1,6 @@
+import os
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
 import torch
 from torch import nn
 from torchvision import datasets, transforms
@@ -6,7 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'mps' if torch.mps.is_available() else 'cpu'
+print(f"Using device: {device}")
 
 # -------------------------
 # Dataset
@@ -125,7 +129,7 @@ print("=== Baseline ===")
 baseline_model, baseline_loss, baseline_acc, baseline_spec = train_and_eval(use_regularizer=False)
 
 print("\n=== With Spectral Energy Regularizer ===")
-reg_model, reg_loss, reg_acc, reg_spec = train_and_eval(use_regularizer=True, mu=1e-4)
+reg_model, reg_loss, reg_acc, reg_spec = train_and_eval(use_regularizer=True, mu=1e-3)
 
 # -------------------------
 # Plot results
