@@ -199,6 +199,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.title("Test Accuracy vs. Epoch")
     plt.tight_layout()
+    plt.savefig(f"plots/loss_accuracy_plot_method={args.method}.png", dpi=300)
     plt.show()
 
     # Layer spectra
@@ -233,6 +234,7 @@ if __name__ == "__main__":
         plt.legend()
         plt.title(f"Eigenvalue spectrum: {layer}")
     plt.tight_layout()
+    plt.savefig(f"plots/eigenvalue_distribution_by_layer_method={args.method}.png", dpi=300)
     plt.show()
 
     # Spectral energy over epochs
@@ -243,4 +245,5 @@ if __name__ == "__main__":
     plt.ylabel("Spectral Energy")
     plt.title("Spectral energy over epochs")
     plt.legend()
+    plt.savefig(f"plots/spectral_energy_during_training_method={args.method}.png", dpi=300)
     plt.show()
