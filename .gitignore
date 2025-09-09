@@ -1,3 +1,6 @@
+absolute_eigenvalue_sum/MNIST/raw/
+absolute_eigenvalue_sum/MNIST/processed/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
