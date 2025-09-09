@@ -1,5 +1,5 @@
-absolute_eigenvalue_sum/MNIST/raw/
-absolute_eigenvalue_sum/MNIST/processed/
+spectral_regularization/MNIST/raw/
+spectral_regularization/MNIST/processed/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
