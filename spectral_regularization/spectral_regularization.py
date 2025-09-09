@@ -44,42 +44,30 @@ class SmallMLP(nn.Module):
         return self.fc3(x)
 
 # -------------------------
-# Compute adjacency matrix for the entire network
+# Global adjacency matrix
 # -------------------------
 def global_adjacency_matrix(model):
-    """
-    Construct symmetric block adjacency matrix for the entire network.
-    Fixed version with proper layer size calculations.
-    """
     layers = [p for n, p in model.named_parameters() if p.ndim == 2]
-    
-    # Correct way: layer_sizes should be [input_size, hidden1_size, hidden2_size, ..., output_size]
-    layer_sizes = [layers[0].shape[0]]  # Start with input size
+    layer_sizes = [layers[0].shape[0]]
     for layer in layers:
-        layer_sizes.append(layer.shape[1])  # Add output size of each layer
-    
+        layer_sizes.append(layer.shape[1])
     total_nodes = sum(layer_sizes)
     A = torch.zeros((total_nodes, total_nodes), device=layers[0].device)
 
-    # Calculate cumulative offsets for each layer
     layer_offsets = [0]
     for size in layer_sizes[:-1]:
         layer_offsets.append(layer_offsets[-1] + size)
 
-    # Place weight matrices between consecutive layers
     for i, W in enumerate(layers):
         rows, cols = W.shape
         row_start = layer_offsets[i]
         col_start = layer_offsets[i + 1]
-        
-        # Place block and its transpose for symmetry
         A[row_start:row_start + rows, col_start:col_start + cols] = W
         A[col_start:col_start + cols, row_start:row_start + rows] = W.T
-
     return A
 
 # -------------------------
-# Spectral energy function for a single layer
+# Spectral energy (single layer)
 # -------------------------
 def spectral_energy(W):
     if W.ndim != 2:
@@ -89,35 +77,43 @@ def spectral_energy(W):
         eigs = torch.linalg.eigvalsh(S)
         return torch.sum(torch.abs(eigs))
     else:
-        # Gram trick → singular values
         S = W.t() @ W if W.size(1) < W.size(0) else W @ W.t()
         eigs = torch.linalg.eigvalsh(S)
         return torch.sum(torch.sqrt(torch.clamp(eigs, min=1e-12)))
-    
+
 # -------------------------
-# Spectral energy function for the entire model
+# Global spectral energy
 # -------------------------
-def spectral_energy_global(model,method='layerwise'):
+def spectral_energy_global(model, method='layerwise', monitor=False):
     total = 0.0
     for _, W in model.named_parameters():
         if W.ndim == 2:
             if method == 'layerwise':
-                total += spectral_energy(W) # compute sum of absolute eigenvalues for layer W
-            if method == 'svd_sum':
-                sv = torch.linalg.svdvals(W) # Eigenvalues of [[0, W], [W^T, 0]] are ± singular values of W
-                total += 2 * sv.sum()  # ± singular values
-            if method == 'frobenius':
-                total += torch.sum(W**2) # use Frobenius norm as a proxy for spectral norm
-            if method == 'global_adjacency':
-                A = global_adjacency_matrix(model).cpu().detach() # arrange layers into global adjacency matrix
-                eigs = torch.linalg.eigvalsh(A) # eigenvalues of global adjacency matrix
-                total += torch.sum(torch.abs(eigs)).item() # sum of absolute eigenvalues
-    return total.item()
+                val = spectral_energy(W)
+            elif method == 'svd_sum':
+                sv = torch.linalg.svdvals(W)
+                val = 2 * sv.sum()
+            elif method == 'frobenius':
+                val = torch.sum(W**2)
+            elif method == 'global_adjacency':
+                A = global_adjacency_matrix(model)
+                eigs = torch.linalg.eigvalsh(A)
+                val = torch.sum(torch.abs(eigs))
+            else:
+                raise ValueError(f"Unknown method {method}")
+            total = total + val
+
+    # Differentiable tensor for training
+    if not monitor:
+        return total
+    # Scalar float for logging/plotting
+    else:
+        return total.detach().cpu().item()
 
 # -------------------------
-# Training function (with loss logging)
+# Training loop
 # -------------------------
-def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
+def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10, method='layerwise'):
     model = SmallMLP(hidden=128).to(device)
     opt = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
     criterion = nn.CrossEntropyLoss()
@@ -134,9 +130,8 @@ def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
             logits = model(x)
             loss = criterion(logits, y)
 
-            spectral_loss = spectral_energy_global(model,method=args.method)
-
             if use_regularizer:
+                spectral_loss = spectral_energy_global(model, method=method, monitor=False)
                 loss += mu * spectral_loss
 
             opt.zero_grad()
@@ -147,8 +142,8 @@ def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
         avg_loss = running_loss / len(train_loader.dataset)
         loss_history.append(avg_loss)
 
-        # Log global spectral energy on CPU
-        spectral_history.append(spectral_loss)
+        # Log spectral energy (non-differentiable, safe)
+        spectral_history.append(spectral_energy_global(model, method=method, monitor=True))
 
         # Eval accuracy
         model.eval()
@@ -161,10 +156,13 @@ def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
                 total += y.numel()
         acc = correct/total
         acc_history.append(acc)
-        print(f"Epoch {epoch}, loss={avg_loss:.4f}, acc={acc:.4f}, spectral_energy={spectral_loss:.4f}")
+        print(f"Epoch {epoch}, loss={avg_loss:.4f}, acc={acc:.4f}, spectral_energy={spectral_history[-1]:.4f}")
 
     return model, loss_history, acc_history, spectral_history
 
+# -------------------------
+# Main
+# -------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train with spectral regularization")
     parser.add_argument("--mu", type=float, default=1e-4, help="Regularization strength")
@@ -174,26 +172,19 @@ if __name__ == "__main__":
     print(f"Using mu = {args.mu}")
     print(f"Using method = {args.method}")
 
-    # -------------------------
-    # Run experiments
-    # -------------------------
     print("=== Baseline ===")
-    baseline_model, baseline_loss, baseline_acc, baseline_spec = train_and_eval(use_regularizer=False)
+    baseline_model, baseline_loss, baseline_acc, baseline_spec = train_and_eval(use_regularizer=False, method=args.method)
 
     print("\n=== With Spectral Energy Regularizer ===")
-    reg_model, reg_loss, reg_acc, reg_spec = train_and_eval(use_regularizer=True, mu=args.mu)
+    reg_model, reg_loss, reg_acc, reg_spec = train_and_eval(use_regularizer=True, mu=args.mu, method=args.method)
 
-    # -------------------------
-    # Plot results
-    # -------------------------
     epochs = np.arange(1, len(baseline_acc)+1)
 
-    plt.figure(figsize=(12,4))
-
     # Loss
+    plt.figure(figsize=(12,4))
     plt.subplot(1,2,1)
     plt.plot(epochs, baseline_loss, label="Baseline")
-    plt.plot(epochs, reg_loss, label="Spectral Reg (μ=1e-4)")
+    plt.plot(epochs, reg_loss, label=f"Spectral Reg (μ={args.mu})")
     plt.xlabel("Epoch")
     plt.ylabel("Training Loss")
     plt.legend()
@@ -202,18 +193,15 @@ if __name__ == "__main__":
     # Accuracy
     plt.subplot(1,2,2)
     plt.plot(epochs, baseline_acc, label="Baseline")
-    plt.plot(epochs, reg_acc, label="Spectral Reg (μ=1e-4)")
+    plt.plot(epochs, reg_acc, label=f"Spectral Reg (μ={args.mu})")
     plt.xlabel("Epoch")
     plt.ylabel("Test Accuracy")
     plt.legend()
     plt.title("Test Accuracy vs. Epoch")
-
     plt.tight_layout()
     plt.show()
 
-    # -------------------------
-    # Extract spectra
-    # -------------------------
+    # Layer spectra
     def layer_spectra(model):
         spectra = {}
         for name, p in model.named_parameters():
@@ -230,17 +218,12 @@ if __name__ == "__main__":
     baseline_spectra = layer_spectra(baseline_model)
     reg_spectra      = layer_spectra(reg_model)
 
-    # -------------------------
-    # Plot eigenvalue histograms
-    # -------------------------
-
     layers = list(baseline_spectra.keys())
     num_layers = len(layers)
     cols = 2
     rows = math.ceil(num_layers / cols)
 
     plt.figure(figsize=(cols*6, rows*4))
-
     for i, layer in enumerate(layers, 1):
         plt.subplot(rows, cols, i)
         plt.hist(baseline_spectra[layer], bins=50, alpha=0.5, label="Baseline")
@@ -249,14 +232,12 @@ if __name__ == "__main__":
         plt.ylabel("Count")
         plt.legend()
         plt.title(f"Eigenvalue spectrum: {layer}")
-
     plt.tight_layout()
     plt.show()
 
-    # -------------------------
-    # Plot spectral energy over epochs
-
+    # Spectral energy over epochs
     plt.figure(figsize=(12,6))
+    plt.plot(baseline_spec, label="Baseline")
     plt.plot(reg_spec, label="w/ spectral regularization")
     plt.xlabel("Epoch")
     plt.ylabel("Spectral Energy")
