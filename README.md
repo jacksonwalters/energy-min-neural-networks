@@ -9,9 +9,15 @@ use various regularization techniques to minimize energy in neural networks
 - use this as a regularization term
 - begin with small networks and datasets such as MNIST
 
-morally, this is similar to summing the singular values which is just nuclear norm regularization:
+morally, this is similar to summing the singular values which is just nuclear norm regularization.
 
-https://arxiv.org/abs/2405.14544
+**references:**
+
+- Nuclear Norm Regularization for Deep Learning - Christopher Scarvelis, Justin Solomon (NeurIPS 2024)
+    - The Jacobian nuclear norm encourages functions to vary only along a few directions, but directly computing it is intractable in high dimensions. This work introduces efficient approximations—using Frobenius norms of component Jacobians and a denoising-style estimator—that make Jacobian nuclear norm regularization practical and scalable for deep learning.
+    - https://arxiv.org/abs/2405.14544
+
+---
 
 **training path energy:**
 
@@ -21,7 +27,7 @@ https://arxiv.org/abs/2405.14544
 - the energy of a path is defined as (1/2)*\int_[0,1] ||\gamma'(t)||^2 dt
 - attempt to minimize this energy by using a local regularization term
 
-**literature**
+**references:**
 
 - Path-SGD: Path-Normalized Optimization in Deep Neural Networks — Neyshabur, Salakhutdinov & Srebro (NeurIPS 2015).
     - Introduces path-style norms and optimization geometry that are invariant to layer rescaling; shows how a path-based regularizer leads to practical optimization rules. 
