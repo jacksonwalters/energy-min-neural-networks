@@ -12,6 +12,10 @@ python spectral_regularization/spectral_regularization.py --method nuclear_norm 
 python path_energy_regularization/path_energy_regularization.py --method blocks --mu 0.0001
 ```
 
+## dataset
+
+These scripts download the MNIST handwriting recognition dataset, and train a model with three layers with 784, 28, 10 nodes respectively.
+
 ## spectral regularization
 
 **method**:
