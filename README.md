@@ -28,6 +28,7 @@ morally, this is similar to summing the singular values which is just nuclear no
 - then \gamma: [0,1] --> R^N, \gamma(t) = A_t is a path in weight space
 - the energy of a path is defined as (1/2)*\int_[0,1] ||\gamma'(t)||^2 dt
 - attempt to minimize this energy by using a local regularization term
+- use block matrices corresponding to each layer instead of global adjacency matrix
 
 **references:**
 
