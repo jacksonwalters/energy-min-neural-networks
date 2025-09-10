@@ -13,6 +13,11 @@ import argparse
 device = 'mps' if torch.mps.is_available() else 'cpu'
 print(f"Using device: {device}")
 
+# create the plots directory if it doesn't exist
+script_dir = os.path.dirname(os.path.abspath(__file__))
+plots_dir = os.path.join(script_dir, "plots")
+os.makedirs(plots_dir, exist_ok=True)
+
 # -------------------------
 # Dataset
 # -------------------------
@@ -20,8 +25,8 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.1307,), (0.3081,))
 ])
-train_ds = datasets.MNIST('.', train=True, download=True, transform=transform)
-test_ds  = datasets.MNIST('.', train=False, download=True, transform=transform)
+train_ds = datasets.MNIST(script_dir, train=True, download=True, transform=transform)
+test_ds  = datasets.MNIST(script_dir, train=False, download=True, transform=transform)
 
 train_loader = DataLoader(train_ds, batch_size=128, shuffle=True)
 test_loader  = DataLoader(test_ds, batch_size=512, shuffle=False)
@@ -199,7 +204,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.title("Test Accuracy vs. Epoch")
     plt.tight_layout()
-    plt.savefig(f"plots/loss_accuracy_plot_method={args.method}.png", dpi=300)
+    plt.savefig(os.path.join(plots_dir, f"loss_accuracy_plot_method={args.method}.png"), dpi=300)
     plt.show()
 
     # Layer spectra
@@ -234,7 +239,7 @@ if __name__ == "__main__":
         plt.legend()
         plt.title(f"Eigenvalue spectrum: {layer}")
     plt.tight_layout()
-    plt.savefig(f"plots/eigenvalue_distribution_by_layer_method={args.method}.png", dpi=300)
+    plt.savefig(os.path.join(plots_dir, f"eigenvalue_distribution_by_layer_method={args.method}.png"), dpi=300)
     plt.show()
 
     # Spectral energy over epochs
@@ -245,5 +250,5 @@ if __name__ == "__main__":
     plt.ylabel("Spectral Energy")
     plt.title("Spectral energy over epochs")
     plt.legend()
-    plt.savefig(f"plots/spectral_energy_during_training_method={args.method}.png", dpi=300)
+    plt.savefig(os.path.join(plots_dir, f"spectral_energy_during_training_method={args.method}.png"), dpi=300)
     plt.show()

@@ -8,8 +8,8 @@ Uses various regularization techniques to minimize "energy" in neural networks.
 
 ```
 pip install -r requirements.txt
-python spectral_regularization/spectral_regularization.py --method nuclear_norm --mu 0.001
-python path_energy_regularization/path_energy_regularization.py --method blocks --mu 0.001
+python spectral_regularization/spectral_regularization.py --method nuclear_norm --mu 0.0001
+python path_energy_regularization/path_energy_regularization.py --method blocks --mu 0.0001
 ```
 
 ## spectral regularization
