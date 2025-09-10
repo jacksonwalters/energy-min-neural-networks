@@ -4,9 +4,7 @@
 
 Uses various regularization techniques to minimize "energy" in neural networks.
 
----
-
-**usage:**
+## usage
 
 ```
 pip install -r requirements.txt
@@ -14,9 +12,9 @@ python path_energy_regularization/spectral_regularization.py --method nuclear_no
 python spectral_regularization/path_energy_regularization.py --method blocks --mu 0.001
 ```
 
----
+## spectral regularization
 
-**spectral regularization:**
+**method**:
 
 - define the energy of a graph to be the sum of absolute value of its eigenvalues, \sum_i |\lambda_i|
 - for a network with N nodes, the weight matrix is an N x N adjacency matrix with nonnegative real entries (a labeled, weighted graph)
@@ -31,16 +29,16 @@ morally, this is similar to summing the singular values which is just nuclear no
     - The Jacobian nuclear norm encourages functions to vary only along a few directions, but directly computing it is intractable in high dimensions. This work introduces efficient approximations—using Frobenius norms of component Jacobians and a denoising-style estimator—that make Jacobian nuclear norm regularization practical and scalable for deep learning.
     - https://arxiv.org/abs/2405.14544
 
----
+## **training path energy**
 
-**training path energy:**
+**method:**
 
-- let A_0 represent the initial weight matrix, and A_1 represent the trained network
-- let A_t be the network at normalized time t during training
-- then \gamma: [0,1] --> R^N, \gamma(t) = A_t is a path in weight space
-- the energy of a path is defined as (1/2)*\int_[0,1] ||\gamma'(t)||^2 dt
+- let $A_0$ represent the initial weight matrix, and $A_1$ represent the trained network
+- let $A_t$ be the network at normalized time t during training
+- then $\gamma: [0,1] \rightarrow R^N$, $\gamma(t) = A_t$ is a path in weight space
+- the energy of a path is defined as $\frac{1}{2}\int_{\[0,1\]} ||\gamma'(t)||^2 dt$
 - attempt to minimize this energy by using a local regularization term
-- use block matrices corresponding to each layer instead of global adjacency matrix
+- use block matrices $W_{i,t}$ corresponding to each layer $i$ instead of global adjacency matrix
 
 **references:**
 
