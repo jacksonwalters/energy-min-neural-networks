@@ -35,7 +35,7 @@ Morally, this is similar to summing the singular values which is just nuclear no
 
 - let $A_0$ represent the initial weight matrix, and $A_1$ represent the trained network
 - let $A_t$ be the network at normalized time t during training
-- then $\gamma: [0,1] \rightarrow R^N$, $\gamma(t) = A_t$ is a path in weight space
+- then $\gamma: [0,1] \rightarrow \mathbb{R}^N$, $\gamma(t) = A_t$ is a path in weight space
 - the energy of a path is defined as $\frac{1}{2}\int_{\[0,1\]} ||\gamma'(t)||^2 dt$
 - attempt to minimize this energy by using a local regularization term
 - use block matrices $W_{i,t}$ corresponding to each layer $i$ instead of global adjacency matrix
