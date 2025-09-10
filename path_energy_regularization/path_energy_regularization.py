@@ -43,7 +43,7 @@ class SmallMLP(nn.Module):
         return self.fc3(x)
 
 # -------------------------
-# Adjacency matrix builder (like before)
+# Global adjacency matrix
 # -------------------------
 def global_adjacency_matrix(model):
     layers = [p for _, p in model.named_parameters() if p.ndim == 2]
@@ -65,17 +65,41 @@ def global_adjacency_matrix(model):
     return A
 
 # -------------------------
+# Path energy utilities
+# -------------------------
+def get_state_global(model):
+    """Flatten full global adjacency matrix."""
+    A = global_adjacency_matrix(model)
+    return A.flatten()
+
+def get_state_blocks(model):
+    """Flatten block weights only (layerwise surrogate)."""
+    states = []
+    for _, W in model.named_parameters():
+        if W.ndim == 2:
+            states.append(W.flatten())
+    return torch.cat(states)
+
+def get_model_state(model, method):
+    if method == "global":
+        return get_state_global(model)
+    elif method == "blocks":
+        return get_state_blocks(model)
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+# -------------------------
 # Training with path energy regularization
 # -------------------------
-def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
+def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10, method="blocks"):
     model = SmallMLP(hidden=128).to(device)
     opt = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
     criterion = nn.CrossEntropyLoss()
 
     acc_history, loss_history, path_energy_history = [], [], []
 
-    # Store previous adjacency matrix for path energy
-    prev_A = global_adjacency_matrix(model).detach()
+    # Initialize state for path energy
+    prev_state = get_model_state(model, method).detach()
 
     for epoch in range(1, epochs+1):
         model.train()
@@ -86,12 +110,13 @@ def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
             logits = model(x)
             loss = criterion(logits, y)
 
+            # Path energy penalty
+            curr_state = get_model_state(model, method)
+            path_energy = torch.norm(curr_state - prev_state)**2
             if use_regularizer:
-                A = global_adjacency_matrix(model)
-                path_energy = torch.norm(A - prev_A)**2
                 loss += 0.5 * mu * path_energy
-                running_path_energy += path_energy.item()
-                prev_A = A.detach()
+            running_path_energy += path_energy.item()
+            prev_state = curr_state.detach()
 
             opt.zero_grad()
             loss.backward()
@@ -124,13 +149,15 @@ def train_and_eval(use_regularizer=False, mu=1e-4, epochs=10):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mu", type=float, default=1e-4, help="Regularization strength")
+    parser.add_argument("--method", type=str, default="blocks", choices=["blocks", "global"],
+                        help="How to compute path energy state")
     args = parser.parse_args()
 
     print("=== Baseline ===")
-    base_model, base_loss, base_acc, _ = train_and_eval(use_regularizer=False)
+    base_model, base_loss, base_acc, base_pe = train_and_eval(use_regularizer=False, method=args.method)
 
     print("\n=== With Path Energy Regularizer ===")
-    reg_model, reg_loss, reg_acc, reg_pe = train_and_eval(use_regularizer=True, mu=args.mu)
+    reg_model, reg_loss, reg_acc, reg_pe = train_and_eval(use_regularizer=True, mu=args.mu, method=args.method)
 
     # Plot results
     epochs = np.arange(1, len(base_acc)+1)
@@ -152,7 +179,9 @@ if __name__ == "__main__":
 
     # Path energy evolution
     plt.figure()
-    plt.plot(reg_pe, label="Path Energy Term")
+    plt.plot(base_pe, label="Baseline Path Energy")
+    plt.plot(reg_pe, label="Reg Path Energy")
     plt.xlabel("Epoch"); plt.ylabel("Average Path Energy")
     plt.legend(); plt.title("Path energy per epoch")
     plt.show()
+

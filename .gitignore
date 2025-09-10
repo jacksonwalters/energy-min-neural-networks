@@ -1,5 +1,7 @@
 spectral_regularization/MNIST/raw/
 spectral_regularization/MNIST/processed/
+path_energy_regularization/MNIST/raw/
+path_energy_regularization/MNIST/processed/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
