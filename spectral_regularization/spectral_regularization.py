@@ -90,10 +90,10 @@ def spectral_energy_global(model, method='layerwise', monitor=False):
         if W.ndim == 2:
             if method == 'layerwise':
                 val = spectral_energy(W)
-            elif method == 'svd_sum':
+            elif method == 'nuclear_norm':
                 sv = torch.linalg.svdvals(W)
                 val = 2 * sv.sum()
-            elif method == 'frobenius':
+            elif method == 'frobenius_norm':
                 val = torch.sum(W**2)
             elif method == 'global_adjacency':
                 A = global_adjacency_matrix(model)
