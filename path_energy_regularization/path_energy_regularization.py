@@ -175,6 +175,7 @@ if __name__ == "__main__":
     plt.xlabel("Epoch"); plt.ylabel("Test Accuracy")
     plt.legend(); plt.title("Test Accuracy vs. Epoch")
     plt.tight_layout()
+    plt.savefig(f"plots/loss_accuracy_plot_method={args.method}.png", dpi=300)
     plt.show()
 
     # Path energy evolution
@@ -183,5 +184,6 @@ if __name__ == "__main__":
     plt.plot(reg_pe, label="Reg Path Energy")
     plt.xlabel("Epoch"); plt.ylabel("Average Path Energy")
     plt.legend(); plt.title("Path energy per epoch")
+    plt.savefig(f"plots/path_energy_during_training_method={args.method}.png", dpi=300)
     plt.show()
 
