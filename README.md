@@ -21,7 +21,7 @@ python spectral_regularization/path_energy_regularization.py --method blocks --m
 - use this as a regularization term
 - begin with small networks and datasets such as MNIST
 
-morally, this is similar to summing the singular values which is just nuclear norm regularization.
+Morally, this is similar to summing the singular values which is just nuclear norm regularization.
 
 **references:**
 
