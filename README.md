@@ -1,6 +1,8 @@
 # regularization-neural-networks
 
-use various regularization techniques to minimize energy in neural networks
+Uses various regularization techniques to minimize "energy" in neural networks.
+
+---
 
 **spectral regularization:**
 
