@@ -1,6 +1,18 @@
 # regularization-neural-networks
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 Uses various regularization techniques to minimize "energy" in neural networks.
+
+---
+
+**usage:**
+
+```
+pip install -r requirements.txt
+python spectral_regularization.py --method nuclear_norm --mu 0.001
+python path_energy_regularization.py --method blocks --mu 0.001
+```
 
 ---
 
