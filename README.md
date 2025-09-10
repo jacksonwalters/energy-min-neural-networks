@@ -16,8 +16,8 @@ python spectral_regularization/path_energy_regularization.py --method blocks --m
 
 **method**:
 
-- define the energy of a graph to be the sum of absolute value of its eigenvalues, \sum_i |\lambda_i|
-- for a network with N nodes, the weight matrix is an N x N adjacency matrix with nonnegative real entries (a labeled, weighted graph)
+- define the energy of a graph to be the sum of absolute value of its eigenvalues, $\sum_i |\lambda_i|$
+- for a network with $N$ nodes, the weight matrix is an $N \times N$ adjacency matrix with nonnegative real entries (a labeled, weighted graph)
 - use this as a regularization term
 - begin with small networks and datasets such as MNIST
 
