@@ -1,8 +1,8 @@
-# energy-min-neural-networks
+# regularization-neural-networks
 
 use various regularization techniques to minimize energy in neural networks
 
-**absolute eigenvalue sum:**
+**spectral regularization:**
 
 - define the energy of a graph to be the sum of absolute value of its eigenvalues, \sum_i |\lambda_i|
 - for a network with N nodes, the weight matrix is an N x N adjacency matrix with nonnegative real entries (a labeled, weighted graph)
