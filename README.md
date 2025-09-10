@@ -20,8 +20,8 @@ python path_energy_regularization/path_energy_regularization.py --method blocks 
 - for a network with $N$ nodes, the weight matrix is an $N \times N$ adjacency matrix with nonnegative real entries (a labeled, weighted graph)
 - use this as a regularization term
 - begin with small networks and datasets such as MNIST
-
-Morally, this is similar to summing the singular values which is just nuclear norm regularization.
+- instead of using the global adjacency matrix, use rectangular blocks $W_i$ corresponding to each layer
+- compute singular values of blocks and sum (nuclear norm), or Frobenius norm (sum of squared singular values)
 
 **references:**
 
