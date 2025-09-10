@@ -9,6 +9,10 @@ use various regularization techniques to minimize energy in neural networks
 - use this as a regularization term
 - begin with small networks and datasets such as MNIST
 
+morally, this is similar to summing the singular values which is just nuclear norm regularization:
+
+https://arxiv.org/abs/2405.14544
+
 **training path energy:**
 
 - let A_0 represent the initial weight matrix, and A_1 represent the trained network
