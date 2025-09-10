@@ -19,4 +19,4 @@ https://arxiv.org/abs/2405.14544
 - let A_t be the network at normalized time t during training
 - then \gamma: [0,1] --> R^N, \gamma(t) = A_t is a path in weight space
 - the energy of a path is defined as (1/2)*\int_[0,1] ||\gamma'(t)||^2 dt
-- attempt to minimize this energy by using a local regularier
+- attempt to minimize this energy by using a local regularization term
